@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import sys
 from datetime import datetime, timedelta, timezone
 
@@ -96,14 +97,12 @@ async def send_daily_poll(application: Application) -> None:
 
 
 async def window_controller(application: Application) -> None:
-    # Ждём 19:00 — отправляем опрос
     wait_poll = seconds_until_time(19, 0)
     next_poll_time = datetime.now(EKATERINBURG_TZ) + timedelta(seconds=wait_poll)
     logger.info(f"Опрос будет отправлен в: {next_poll_time.strftime('%H:%M:%S')} (Екатеринбург)")
     await asyncio.sleep(wait_poll)
     await send_daily_poll(application)
 
-    # Ждём 20:00 — завершаем работу
     wait_stop = seconds_until_time(20, 0)
     stop_time = datetime.now(EKATERINBURG_TZ) + timedelta(seconds=wait_stop)
     logger.info(f"Бот завершит работу в: {stop_time.strftime('%H:%M:%S')} (Екатеринбург)")
@@ -111,7 +110,7 @@ async def window_controller(application: Application) -> None:
 
     logger.info("20:00 — бот завершает работу до следующего запуска.")
     await application.stop()
-    sys.exit(0)
+    os._exit(0)
 
 
 async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
