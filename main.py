@@ -97,11 +97,23 @@ async def send_daily_poll(application: Application) -> None:
 
 
 async def window_controller(application: Application) -> None:
-    wait_poll = seconds_until_time(19, 0)
-    next_poll_time = datetime.now(EKATERINBURG_TZ) + timedelta(seconds=wait_poll)
-    logger.info(f"Опрос будет отправлен в: {next_poll_time.strftime('%H:%M:%S')} (Екатеринбург)")
-    await asyncio.sleep(wait_poll)
-    await send_daily_poll(application)
+    now_ekb = datetime.now(EKATERINBURG_TZ)
+    hour = now_ekb.hour
+
+    if hour >= 20:
+        logger.info("Запуск после 20:00 — бот завершает работу.")
+        await application.stop()
+        os._exit(0)
+
+    if hour >= 19:
+        logger.info("Запуск между 19:00 и 20:00 — отправляем опрос сразу.")
+        await send_daily_poll(application)
+    else:
+        wait_poll = seconds_until_time(19, 0)
+        next_poll_time = now_ekb + timedelta(seconds=wait_poll)
+        logger.info(f"Опрос будет отправлен в: {next_poll_time.strftime('%H:%M:%S')} (Екатеринбург)")
+        await asyncio.sleep(wait_poll)
+        await send_daily_poll(application)
 
     wait_stop = seconds_until_time(20, 0)
     stop_time = datetime.now(EKATERINBURG_TZ) + timedelta(seconds=wait_stop)
